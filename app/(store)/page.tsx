@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { sanityFetch } from "@/sanity/lib/live";
+import { groq } from "next-sanity";
 
-export default function Home() {
+export default async function Home() {
+  const categories = await sanityFetch({
+    query: groq`*[_type == "category"]`
+  })
+
+  console.log(categories);
   return (
     <div
       className="bg-white text-2xl

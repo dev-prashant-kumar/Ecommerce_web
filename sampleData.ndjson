@@ -1,0 +1,24 @@
+{"_type":"category","_id":"cat1","title":"Electronics","slug":{"current":"electronics"},"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=1200"}}}
+{"_type":"category","_id":"cat2","title":"Clothing","slug":{"current":"clothing"},"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1520975689126-10c548d68ebc?w=1200"}}}
+{"_type":"category","_id":"cat3","title":"Books","slug":{"current":"books"},"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200"}}}
+{"_type":"category","_id":"cat4","title":"Home Appliances","slug":{"current":"home-appliances"},"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1581579189337-3db6b3f486be?w=1200"}}}
+{"_type":"category","_id":"cat5","title":"Toys","slug":{"current":"toys"},"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1596495577886-d920f1fb7d91?w=1200"}}}
+
+{"_type":"product","_id":"prod1","title":"iPhone 15","slug":{"current":"iphone-15"},"price":99999,"discountPrice":94999,"categories":[{"_type":"reference","_ref":"cat1"}],"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1611078481666-a6cc0d4f74e5?w=1200"}},"description":"Latest Apple iPhone","inStock":true,"quantity":50,"featured":true}
+
+{"_type":"product","_id":"prod2","title":"Samsung TV 55\"","slug":{"current":"samsung-tv-55"},"price":55000,"categories":[{"_type":"reference","_ref":"cat1"}],"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1580910051075-43c37cc507ca?w=1200"}},"description":"4K Smart Television","inStock":true,"quantity":30}
+
+{"_type":"product","_id":"prod3","title":"Men's T-Shirt","slug":{"current":"mens-tshirt"},"price":499,"categories":[{"_type":"reference","_ref":"cat2"}],"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200"}},"description":"Cotton casual t-shirt","inStock":true,"quantity":120}
+
+{"_type":"product","_id":"prod4","title":"Cookbook","slug":{"current":"cookbook"},"price":299,"categories":[{"_type":"reference","_ref":"cat3"}],"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1526318472351-bc4bd9a297aa?w=1200"}},"description":"Healthy recipes cookbook","inStock":true,"quantity":80}
+
+{"_type":"product","_id":"prod5","title":"Robot Vacuum","slug":{"current":"robot-vacuum"},"price":12000,"categories":[{"_type":"reference","_ref":"cat4"}],"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1600180758895-4e0cc93418b6?w=1200"}},"description":"Automatic floor cleaner","inStock":true,"quantity":20,"featured":true}
+
+{"_type":"product","_id":"prod6","title":"Toy Car","slug":{"current":"toy-car"},"price":799,"categories":[{"_type":"reference","_ref":"cat5"}],"image":{"_type":"image","asset":{"_type":"sanity.imageAsset","url":"https://images.unsplash.com/photo-1587169772820-78daa765b042?w=1200"}},"description":"Remote controlled toy car","inStock":true,"quantity":150}
+
+{"_type":"customer","_id":"cust1","email":"alice@example.com","name":"Alice Johnson","clerkUserId":"clerk_001","stripeCustomerId":"stripe_001","createdAt":"2026-01-01T10:00:00Z"}
+{"_type":"customer","_id":"cust2","email":"bob@example.com","name":"Bob Smith","clerkUserId":"clerk_002","stripeCustomerId":"stripe_002","createdAt":"2026-01-02T11:00:00Z"}
+
+{"_type":"order","_id":"order1","orderId":"ORD-001","customer":{"_type":"reference","_ref":"cust1"},"items":[{"product":{"_type":"reference","_ref":"prod1"},"quantity":1,"price":99999}],"subtotal":99999,"shippingCost":499,"totalAmount":100498,"status":"processing","createdAt":"2026-01-05T09:00:00Z"}
+
+{"_type":"order","_id":"order2","orderId":"ORD-002","customer":{"_type":"reference","_ref":"cust2"},"items":[{"product":{"_type":"reference","_ref":"prod3"},"quantity":2,"price":499}],"subtotal":998,"shippingCost":99,"totalAmount":1097,"status":"shipped","createdAt":"2026-01-06T12:00:00Z"}
