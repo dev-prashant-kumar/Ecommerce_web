@@ -56,8 +56,13 @@ export const ORDERS_COUNT_QUERY = defineQuery(`
 
 /** Total revenue (paid + shipped + delivered) */
 export const TOTAL_REVENUE_QUERY = defineQuery(`
-  sum(*[_type == "order" && status in ["paid","shipped","delivered"]].totalAmount)
+{
+  "totalRevenue": math::sum(
+    *[_type == "order" && status == "completed"].total
+  )
+}
 `);
+
 
 /**
  * =========================

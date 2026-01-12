@@ -1,4 +1,5 @@
 import { defineQuery } from "next-sanity";
+import { PRODUCT_PROJECTION } from "./products";
 
 /**
  * =========================
@@ -102,31 +103,41 @@ export const CANCELLED_ORDERS_COUNT_QUERY = defineQuery(`
  */
 
 /** Total revenue (paid orders only) */
-export const TOTAL_REVENUE_QUERY = defineQuery(`
-  sum(*[_type == "order" && payment.status == "paid"].totalAmount)
+export const STATS_TOTAL_REVENUE_QUERY = defineQuery(`
+  {
+    "totalRevenue": math::sum(
+      *[_type == "order" && status == "completed"].total
+    )
+  }
 `);
 
 /** Revenue today */
 export const TODAY_REVENUE_QUERY = defineQuery(`
-  sum(
+{
+  "todayRevenue": math::sum(
     *[
-      _type == "order" &&
-      payment.status == "paid" &&
-      date(createdAt) == date(now())
-    ].totalAmount
+      _type == "order"
+      && status == "completed"
+      && createdAt >= dateTime(now()) - 60*60*24
+    ].total
   )
+}
 `);
+
 
 /** Revenue this month */
 export const MONTH_REVENUE_QUERY = defineQuery(`
-  sum(
+{
+  "monthRevenue": math::sum(
     *[
-      _type == "order" &&
-      payment.status == "paid" &&
-      date(createdAt) >= date(now() - 30*24*60*60)
-    ].totalAmount
+      _type == "order"
+      && status == "completed"
+      && createdAt >= dateTime(now()) - 60*60*24*30
+    ].total
   )
+}
 `);
+
 
 /**
  * =========================
@@ -168,31 +179,20 @@ export const ATTENTION_ORDERS_COUNT_QUERY = defineQuery(`
 
 /** Orders created in last 7 days */
 export const ORDERS_LAST_7_DAYS_QUERY = defineQuery(`
-  *[
-    _type == "order" &&
-    date(createdAt) >= date(now() - 7*24*60*60)
-  ] | order(createdAt desc) {
-    _id,
-    orderId,
-    totalAmount,
-    status,
-    createdAt,
-    customer->{
-      _id,
-      name,
-      email
-    }
-  }
+*[
+  _type == "order"
+  && createdAt >= dateTime(now()) - 60*60*24*7
+]
 `);
 
 /** Count of orders in last 7 days */
 export const ORDERS_LAST_7_DAYS_COUNT_QUERY = defineQuery(`
-  count(
-    *[
-      _type == "order" &&
-      date(createdAt) >= date(now() - 7*24*60*60)
-    ]
-  )
+count(
+  *[
+    _type == "order"
+    && createdAt >= dateTime(now()) - 60*60*24*7
+  ]
+)
 `);
 
 /**
@@ -220,54 +220,22 @@ export const ORDER_STATUS_DISTRIBUTION_QUERY = defineQuery(`
  */
 
 export const TOP_SELLING_PRODUCTS_QUERY = defineQuery(`
-*[_type == "order" && payment.status == "paid"]
-{
-  "items": items[]{
-    product->{
-      _id,
-      title,
-      "slug": slug.current,
-      image{
-        asset->{
-          _id,
-          url
-        }
-      }
-    },
-    quantity,
-    price
-  }
-}
-| {
-  "products": items[].{
-    product,
-    quantity
-  }
-}
+*[_type == "product"]
+| order(quantity desc)
+[0...10]
+${PRODUCT_PROJECTION}
 `);
 
 /**
  * 🔥 Aggregated top-selling products (recommended version)
  */
 export const TOP_SELLING_PRODUCTS_AGGREGATED_QUERY = defineQuery(`
-*[_type == "product"]{
-  _id,
-  title,
-  "slug": slug.current,
-  image{
-    asset->{
-      _id,
-      url
-    }
-  },
-  "totalSold": sum(
-    *[_type == "order" && payment.status == "paid"]
-      .items[product._ref == ^._id].quantity
-  )
-}
-| order(totalSold desc)
+*[_type == "product" && defined(quantity)]
+| order(quantity desc)
 [0...10]
+${PRODUCT_PROJECTION}
 `);
+
 
 /**
  * =========================
@@ -318,12 +286,14 @@ export const UNFULFILLED_ORDERS_COUNT_QUERY = defineQuery(`
  */
 
 export const SALES_LAST_7_DAYS_QUERY = defineQuery(`
-*[
-  _type == "order" &&
-  payment.status == "paid" &&
-  date(createdAt) >= date(now() - 7*24*60*60)
-]{
-  "date": date(createdAt),
-  totalAmount
+{
+  "salesLast7Days": math::sum(
+    *[
+      _type == "order"
+      && status == "completed"
+      && createdAt >= dateTime(now()) - 60*60*24*7
+    ].total
+  )
 }
 `);
+

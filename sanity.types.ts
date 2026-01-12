@@ -355,6 +355,11 @@ export type RECENT_ORDERS_QUERYResult = Array<{
 // Variable: ORDERS_COUNT_QUERY
 // Query: count(*[_type == "order"])
 export type ORDERS_COUNT_QUERYResult = number;
+// Variable: TOTAL_REVENUE_QUERY
+// Query: {  "totalRevenue": math::sum(    *[_type == "order" && status == "completed"].total  )}
+export type TOTAL_REVENUE_QUERYResult = {
+  totalRevenue: never;
+};
 // Variable: ORDER_BY_ORDER_ID_QUERY
 // Query: *[_type == "order" && orderId == $orderId][0] {    _id,    orderId,    status,    subtotal,    shippingCost,    totalAmount,    createdAt,    customer->{      _id,      name,      email,      stripeCustomerId    },    items[]{      title,      price,      quantity,      product->{        _id,        title,        slug      }    },    shippingAddress,    payment  }
 export type ORDER_BY_ORDER_ID_QUERYResult = {
@@ -416,308 +421,500 @@ export type ORDERS_BY_CUSTOMER_ID_QUERYResult = Array<{
 
 // Source: ./sanity/queries/products.ts
 // Variable: ALL_PRODUCTS_QUERY
-// Query: *[_type == "product"] | order(_createdAt desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product"] | order(_createdAt desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type ALL_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: PRODUCT_BY_ID_QUERY
-// Query: *[_type == "product" && _id == $id][0]  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && _id == $id][0]  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PRODUCT_BY_ID_QUERYResult = {
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 } | null;
 // Variable: PRODUCT_BY_SLUG_QUERY
-// Query: *[_type == "product" && slug.current == $slug][0]  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && slug.current == $slug][0]  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PRODUCT_BY_SLUG_QUERYResult = {
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 } | null;
 // Variable: PRODUCTS_BY_CATEGORY_QUERY
-// Query: *[_type == "product" && $categorySlug in categories[]->slug.current]  | order(_createdAt desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && $categorySlug in categories[]->slug.current]  | order(_createdAt desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: SEARCH_PRODUCTS_BY_NAME_QUERY
-// Query: *[_type == "product" && title match $search + "*"]  | order(_createdAt desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && title match $search + "*"]  | order(_createdAt desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type SEARCH_PRODUCTS_BY_NAME_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: PRODUCTS_PRICE_ASC_QUERY
-// Query: *[_type == "product"] | order(price asc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product"] | order(price asc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PRODUCTS_PRICE_ASC_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: PRODUCTS_PRICE_DESC_QUERY
-// Query: *[_type == "product"] | order(price desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product"] | order(price desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PRODUCTS_PRICE_DESC_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: PRODUCTS_BY_PRICE_RANGE_QUERY
-// Query: *[_type == "product" && price >= $min && price <= $max]  | order(price asc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && price >= $min && price <= $max]  | order(price asc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PRODUCTS_BY_PRICE_RANGE_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: IN_STOCK_PRODUCTS_QUERY
-// Query: *[_type == "product" && inStock == true]  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && inStock == true]  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type IN_STOCK_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: true;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: OUT_OF_STOCK_PRODUCTS_QUERY
-// Query: *[_type == "product" && inStock == false]  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && inStock == false]  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type OUT_OF_STOCK_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: false;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: LOW_STOCK_PRODUCTS_QUERY
-// Query: *[_type == "product" && quantity < $threshold]  | order(quantity asc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && quantity < $threshold]  | order(quantity asc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type LOW_STOCK_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: FEATURED_PRODUCTS_QUERY
-// Query: *[_type == "product" && featured == true]  | order(_createdAt desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && featured == true]  | order(createdAt desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type FEATURED_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: true;
   inStock: boolean | null;
   quantity: number | null;
-  featured: true;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: DISCOUNTED_PRODUCTS_QUERY
-// Query: *[_type == "product" && defined(discountPrice)]  | order(discountPrice asc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product" && defined(discountPrice)]  | order(discountPrice asc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type DISCOUNTED_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: NEW_ARRIVALS_QUERY
-// Query: *[_type == "product"]  | order(_createdAt desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product"]  | order(_createdAt desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type NEW_ARRIVALS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: BEST_SELLER_PRODUCTS_QUERY
-// Query: *[_type == "product"]  | order(quantity desc)  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product"]  | order(quantity desc)  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type BEST_SELLER_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: PAGINATED_PRODUCTS_QUERY
-// Query: *[_type == "product"]  | order(_createdAt desc)[$start...$end]  {  _id,  title,  "slug": slug.current,  price,  discountPrice,  inStock,  quantity,  featured,  description,  categories[]->{    _id,    title,    "slug": slug.current  },  images[]{    asset->{      _id,      url    },    hotspot  }}
+// Query: *[_type == "product"]  | order(_createdAt desc)[$start...$end]  {  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
 export type PAGINATED_PRODUCTS_QUERYResult = Array<{
   _id: string;
   title: string | null;
-  slug: string | null;
+  description: string | null;
   price: number | null;
   discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  featured: boolean | null;
-  description: string | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: string | null;
+    slug: Slug | null;
   }> | null;
-  images: null;
 }>;
 // Variable: PRODUCT_COUNT_QUERY
 // Query: count(*[_type == "product"])
@@ -728,6 +925,177 @@ export type OUT_OF_STOCK_COUNT_QUERYResult = number;
 // Variable: LOW_STOCK_COUNT_QUERY
 // Query: count(*[_type == "product" && quantity < $threshold])
 export type LOW_STOCK_COUNT_QUERYResult = number;
+// Variable: FILTERED_PRODUCT_COUNT_QUERY
+// Query: count(  *[    _type == "product"    && (!defined($search) || title match $search + "*")    && (!defined($category) || $category in categories[]->slug.current)    && (!defined($minPrice) || price >= $minPrice)    && (!defined($maxPrice) || price <= $maxPrice)    && (!defined($inStock) || inStock == $inStock)  ])
+export type FILTERED_PRODUCT_COUNT_QUERYResult = number;
+
+// Source: ./sanity/queries/stats.ts
+// Variable: TOTAL_PRODUCTS_QUERY
+// Query: count(*[_type == "product"])
+export type TOTAL_PRODUCTS_QUERYResult = number;
+// Variable: IN_STOCK_PRODUCTS_COUNT_QUERY
+// Query: count(*[_type == "product" && inStock == true])
+export type IN_STOCK_PRODUCTS_COUNT_QUERYResult = number;
+// Variable: OUT_OF_STOCK_PRODUCTS_COUNT_QUERY
+// Query: count(*[_type == "product" && inStock == false])
+export type OUT_OF_STOCK_PRODUCTS_COUNT_QUERYResult = number;
+// Variable: LOW_STOCK_PRODUCTS_COUNT_QUERY
+// Query: count(*[_type == "product" && quantity < $threshold])
+export type LOW_STOCK_PRODUCTS_COUNT_QUERYResult = number;
+// Variable: FEATURED_PRODUCTS_COUNT_QUERY
+// Query: count(*[_type == "product" && featured == true])
+export type FEATURED_PRODUCTS_COUNT_QUERYResult = number;
+// Variable: DISCOUNTED_PRODUCTS_COUNT_QUERY
+// Query: count(*[_type == "product" && defined(discountPrice)])
+export type DISCOUNTED_PRODUCTS_COUNT_QUERYResult = number;
+// Variable: TOTAL_CATEGORIES_QUERY
+// Query: count(*[_type == "category"])
+export type TOTAL_CATEGORIES_QUERYResult = number;
+// Variable: TOTAL_CUSTOMERS_QUERY
+// Query: count(*[_type == "customer"])
+export type TOTAL_CUSTOMERS_QUERYResult = number;
+// Variable: STRIPE_CUSTOMERS_COUNT_QUERY
+// Query: count(*[_type == "customer" && defined(stripeCustomerId)])
+export type STRIPE_CUSTOMERS_COUNT_QUERYResult = number;
+// Variable: TOTAL_ORDERS_QUERY
+// Query: count(*[_type == "order"])
+export type TOTAL_ORDERS_QUERYResult = number;
+// Variable: PENDING_ORDERS_COUNT_QUERY
+// Query: count(*[_type == "order" && status == "pending"])
+export type PENDING_ORDERS_COUNT_QUERYResult = number;
+// Variable: PROCESSING_ORDERS_COUNT_QUERY
+// Query: count(*[_type == "order" && status == "processing"])
+export type PROCESSING_ORDERS_COUNT_QUERYResult = number;
+// Variable: SHIPPED_ORDERS_COUNT_QUERY
+// Query: count(*[_type == "order" && status == "shipped"])
+export type SHIPPED_ORDERS_COUNT_QUERYResult = number;
+// Variable: DELIVERED_ORDERS_COUNT_QUERY
+// Query: count(*[_type == "order" && status == "delivered"])
+export type DELIVERED_ORDERS_COUNT_QUERYResult = number;
+// Variable: CANCELLED_ORDERS_COUNT_QUERY
+// Query: count(*[_type == "order" && status == "cancelled"])
+export type CANCELLED_ORDERS_COUNT_QUERYResult = number;
+// Variable: STATS_TOTAL_REVENUE_QUERY
+// Query: {    "totalRevenue": math::sum(      *[_type == "order" && status == "completed"].total    )  }
+export type STATS_TOTAL_REVENUE_QUERYResult = {
+  totalRevenue: never;
+};
+// Variable: TODAY_REVENUE_QUERY
+// Query: {  "todayRevenue": math::sum(    *[      _type == "order"      && status == "completed"      && createdAt >= dateTime(now()) - 60*60*24    ].total  )}
+export type TODAY_REVENUE_QUERYResult = {
+  todayRevenue: never;
+};
+// Variable: MONTH_REVENUE_QUERY
+// Query: {  "monthRevenue": math::sum(    *[      _type == "order"      && status == "completed"      && createdAt >= dateTime(now()) - 60*60*24*30    ].total  )}
+export type MONTH_REVENUE_QUERYResult = {
+  monthRevenue: never;
+};
+// Variable: ATTENTION_ORDERS_COUNT_QUERY
+// Query: count(    *[      _type == "order" &&      (status == "pending" || status == "processing")    ]  )
+export type ATTENTION_ORDERS_COUNT_QUERYResult = number;
+// Variable: ORDERS_LAST_7_DAYS_QUERY
+// Query: *[  _type == "order"  && createdAt >= dateTime(now()) - 60*60*24*7]
+export type ORDERS_LAST_7_DAYS_QUERYResult = Array<never>;
+// Variable: ORDERS_LAST_7_DAYS_COUNT_QUERY
+// Query: count(  *[    _type == "order"    && createdAt >= dateTime(now()) - 60*60*24*7  ])
+export type ORDERS_LAST_7_DAYS_COUNT_QUERYResult = number;
+// Variable: ORDER_STATUS_DISTRIBUTION_QUERY
+// Query: {  "pending": count(*[_type == "order" && status == "pending"]),  "processing": count(*[_type == "order" && status == "processing"]),  "shipped": count(*[_type == "order" && status == "shipped"]),  "delivered": count(*[_type == "order" && status == "delivered"]),  "cancelled": count(*[_type == "order" && status == "cancelled"])}
+export type ORDER_STATUS_DISTRIBUTION_QUERYResult = {
+  pending: number;
+  processing: number;
+  shipped: number;
+  delivered: number;
+  cancelled: number;
+};
+// Variable: TOP_SELLING_PRODUCTS_QUERY
+// Query: *[_type == "product"]| order(quantity desc)[0...10]{  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
+export type TOP_SELLING_PRODUCTS_QUERYResult = Array<{
+  _id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
+  inStock: boolean | null;
+  quantity: number | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: Slug | null;
+  }> | null;
+}>;
+// Variable: TOP_SELLING_PRODUCTS_AGGREGATED_QUERY
+// Query: *[_type == "product" && defined(quantity)]| order(quantity desc)[0...10]{  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
+export type TOP_SELLING_PRODUCTS_AGGREGATED_QUERYResult = Array<{
+  _id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
+  inStock: boolean | null;
+  quantity: number;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: Slug | null;
+  }> | null;
+}>;
+// Variable: UNFULFILLED_ORDERS_QUERY
+// Query: *[    _type == "order" &&    (      status == "pending" ||      status == "processing"    )  ] | order(createdAt asc) {    _id,    orderId,    totalAmount,    status,    createdAt,    customer->{      _id,      name,      email    },    items[]{      title,      quantity    }  }
+export type UNFULFILLED_ORDERS_QUERYResult = Array<{
+  _id: string;
+  orderId: string | null;
+  totalAmount: number | null;
+  status: "cancelled" | "delivered" | "pending" | "processing" | "shipped" | null;
+  createdAt: string | null;
+  customer: {
+    _id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
+  items: Array<{
+    title: string | null;
+    quantity: number | null;
+  }> | null;
+}>;
+// Variable: UNFULFILLED_ORDERS_COUNT_QUERY
+// Query: count(    *[      _type == "order" &&      (status == "pending" || status == "processing")    ]  )
+export type UNFULFILLED_ORDERS_COUNT_QUERYResult = number;
+// Variable: SALES_LAST_7_DAYS_QUERY
+// Query: {  "salesLast7Days": math::sum(    *[      _type == "order"      && status == "completed"      && createdAt >= dateTime(now()) - 60*60*24*7    ].total  )}
+export type SALES_LAST_7_DAYS_QUERYResult = {
+  salesLast7Days: never;
+};
 
 // Query TypeMap
 import "@sanity/client";
@@ -740,28 +1108,52 @@ declare module "@sanity/client" {
     "\n  *[_type == \"order\"] | order(createdAt desc) {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt,\n    \"customer\": customer->{\n      _id,\n      name,\n      email\n    }\n  }\n": ALL_ORDERS_QUERYResult;
     "\n  *[_type == \"order\" && status == $status]\n  | order(createdAt desc) {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt,\n    customer->{\n      name,\n      email\n    }\n  }\n": ORDERS_BY_STATUS_QUERYResult;
     "\n  *[_type == \"order\"] | order(createdAt desc)[0...5] {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt\n  }\n": RECENT_ORDERS_QUERYResult;
-    "\n  count(*[_type == \"order\"])\n": ORDERS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"order\"])\n": ORDERS_COUNT_QUERYResult | TOTAL_ORDERS_QUERYResult;
+    "\n{\n  \"totalRevenue\": math::sum(\n    *[_type == \"order\" && status == \"completed\"].total\n  )\n}\n": TOTAL_REVENUE_QUERYResult;
     "\n  *[_type == \"order\" && orderId == $orderId][0] {\n    _id,\n    orderId,\n    status,\n    subtotal,\n    shippingCost,\n    totalAmount,\n    createdAt,\n\n    customer->{\n      _id,\n      name,\n      email,\n      stripeCustomerId\n    },\n\n    items[]{\n      title,\n      price,\n      quantity,\n      product->{\n        _id,\n        title,\n        slug\n      }\n    },\n\n    shippingAddress,\n    payment\n  }\n": ORDER_BY_ORDER_ID_QUERYResult;
     "\n  *[_type == \"order\" && clerkUserId == $clerkUserId]\n  | order(createdAt desc) {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt\n  }\n": ORDERS_BY_CLERK_USER_QUERYResult;
     "\n  *[_type == \"order\" && customer._ref == $customerId]\n  | order(createdAt desc) {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt\n  }\n": ORDERS_BY_CUSTOMER_ID_QUERYResult;
-    "\n  *[_type == \"product\"] | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": ALL_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\" && _id == $id][0]\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PRODUCT_BY_ID_QUERYResult;
-    "\n  *[_type == \"product\" && slug.current == $slug][0]\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PRODUCT_BY_SLUG_QUERYResult;
-    "\n  *[_type == \"product\" && $categorySlug in categories[]->slug.current]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PRODUCTS_BY_CATEGORY_QUERYResult;
-    "\n  *[_type == \"product\" && title match $search + \"*\"]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": SEARCH_PRODUCTS_BY_NAME_QUERYResult;
-    "\n  *[_type == \"product\"] | order(price asc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PRODUCTS_PRICE_ASC_QUERYResult;
-    "\n  *[_type == \"product\"] | order(price desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PRODUCTS_PRICE_DESC_QUERYResult;
-    "\n  *[_type == \"product\" && price >= $min && price <= $max]\n  | order(price asc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PRODUCTS_BY_PRICE_RANGE_QUERYResult;
-    "\n  *[_type == \"product\" && inStock == true]\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": IN_STOCK_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\" && inStock == false]\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": OUT_OF_STOCK_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\" && quantity < $threshold]\n  | order(quantity asc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": LOW_STOCK_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\" && featured == true]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": FEATURED_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\" && defined(discountPrice)]\n  | order(discountPrice asc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": DISCOUNTED_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\"]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": NEW_ARRIVALS_QUERYResult;
-    "\n  *[_type == \"product\"]\n  | order(quantity desc)\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": BEST_SELLER_PRODUCTS_QUERYResult;
-    "\n  *[_type == \"product\"]\n  | order(_createdAt desc)[$start...$end]\n  \n{\n  _id,\n  title,\n  \"slug\": slug.current,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  featured,\n  description,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  images[]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  }\n}\n\n": PAGINATED_PRODUCTS_QUERYResult;
-    "\n  count(*[_type == \"product\"])\n": PRODUCT_COUNT_QUERYResult;
-    "\n  count(*[_type == \"product\" && inStock == false])\n": OUT_OF_STOCK_COUNT_QUERYResult;
-    "\n  count(*[_type == \"product\" && quantity < $threshold])\n": LOW_STOCK_COUNT_QUERYResult;
+    "\n  *[_type == \"product\"] | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": ALL_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\" && _id == $id][0]\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PRODUCT_BY_ID_QUERYResult;
+    "\n  *[_type == \"product\" && slug.current == $slug][0]\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PRODUCT_BY_SLUG_QUERYResult;
+    "\n  *[_type == \"product\" && $categorySlug in categories[]->slug.current]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PRODUCTS_BY_CATEGORY_QUERYResult;
+    "\n  *[_type == \"product\" && title match $search + \"*\"]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": SEARCH_PRODUCTS_BY_NAME_QUERYResult;
+    "\n  *[_type == \"product\"] | order(price asc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PRODUCTS_PRICE_ASC_QUERYResult;
+    "\n  *[_type == \"product\"] | order(price desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PRODUCTS_PRICE_DESC_QUERYResult;
+    "\n  *[_type == \"product\" && price >= $min && price <= $max]\n  | order(price asc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PRODUCTS_BY_PRICE_RANGE_QUERYResult;
+    "\n  *[_type == \"product\" && inStock == true]\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": IN_STOCK_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\" && inStock == false]\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": OUT_OF_STOCK_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\" && quantity < $threshold]\n  | order(quantity asc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": LOW_STOCK_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\" && featured == true]\n  | order(createdAt desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": FEATURED_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\" && defined(discountPrice)]\n  | order(discountPrice asc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": DISCOUNTED_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\"]\n  | order(_createdAt desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": NEW_ARRIVALS_QUERYResult;
+    "\n  *[_type == \"product\"]\n  | order(quantity desc)\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": BEST_SELLER_PRODUCTS_QUERYResult;
+    "\n  *[_type == \"product\"]\n  | order(_createdAt desc)[$start...$end]\n  \n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": PAGINATED_PRODUCTS_QUERYResult;
+    "\n  count(*[_type == \"product\"])\n": PRODUCT_COUNT_QUERYResult | TOTAL_PRODUCTS_QUERYResult;
+    "\n  count(*[_type == \"product\" && inStock == false])\n": OUT_OF_STOCK_COUNT_QUERYResult | OUT_OF_STOCK_PRODUCTS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"product\" && quantity < $threshold])\n": LOW_STOCK_COUNT_QUERYResult | LOW_STOCK_PRODUCTS_COUNT_QUERYResult;
+    "\ncount(\n  *[\n    _type == \"product\"\n    && (!defined($search) || title match $search + \"*\")\n    && (!defined($category) || $category in categories[]->slug.current)\n    && (!defined($minPrice) || price >= $minPrice)\n    && (!defined($maxPrice) || price <= $maxPrice)\n    && (!defined($inStock) || inStock == $inStock)\n  ]\n)\n": FILTERED_PRODUCT_COUNT_QUERYResult;
+    "\n  count(*[_type == \"product\" && inStock == true])\n": IN_STOCK_PRODUCTS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"product\" && featured == true])\n": FEATURED_PRODUCTS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"product\" && defined(discountPrice)])\n": DISCOUNTED_PRODUCTS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"category\"])\n": TOTAL_CATEGORIES_QUERYResult;
+    "\n  count(*[_type == \"customer\"])\n": TOTAL_CUSTOMERS_QUERYResult;
+    "\n  count(*[_type == \"customer\" && defined(stripeCustomerId)])\n": STRIPE_CUSTOMERS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"order\" && status == \"pending\"])\n": PENDING_ORDERS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"order\" && status == \"processing\"])\n": PROCESSING_ORDERS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"order\" && status == \"shipped\"])\n": SHIPPED_ORDERS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"order\" && status == \"delivered\"])\n": DELIVERED_ORDERS_COUNT_QUERYResult;
+    "\n  count(*[_type == \"order\" && status == \"cancelled\"])\n": CANCELLED_ORDERS_COUNT_QUERYResult;
+    "\n  {\n    \"totalRevenue\": math::sum(\n      *[_type == \"order\" && status == \"completed\"].total\n    )\n  }\n": STATS_TOTAL_REVENUE_QUERYResult;
+    "\n{\n  \"todayRevenue\": math::sum(\n    *[\n      _type == \"order\"\n      && status == \"completed\"\n      && createdAt >= dateTime(now()) - 60*60*24\n    ].total\n  )\n}\n": TODAY_REVENUE_QUERYResult;
+    "\n{\n  \"monthRevenue\": math::sum(\n    *[\n      _type == \"order\"\n      && status == \"completed\"\n      && createdAt >= dateTime(now()) - 60*60*24*30\n    ].total\n  )\n}\n": MONTH_REVENUE_QUERYResult;
+    "\n  count(\n    *[\n      _type == \"order\" &&\n      (status == \"pending\" || status == \"processing\")\n    ]\n  )\n": ATTENTION_ORDERS_COUNT_QUERYResult | UNFULFILLED_ORDERS_COUNT_QUERYResult;
+    "\n*[\n  _type == \"order\"\n  && createdAt >= dateTime(now()) - 60*60*24*7\n]\n": ORDERS_LAST_7_DAYS_QUERYResult;
+    "\ncount(\n  *[\n    _type == \"order\"\n    && createdAt >= dateTime(now()) - 60*60*24*7\n  ]\n)\n": ORDERS_LAST_7_DAYS_COUNT_QUERYResult;
+    "\n{\n  \"pending\": count(*[_type == \"order\" && status == \"pending\"]),\n  \"processing\": count(*[_type == \"order\" && status == \"processing\"]),\n  \"shipped\": count(*[_type == \"order\" && status == \"shipped\"]),\n  \"delivered\": count(*[_type == \"order\" && status == \"delivered\"]),\n  \"cancelled\": count(*[_type == \"order\" && status == \"cancelled\"])\n}\n": ORDER_STATUS_DISTRIBUTION_QUERYResult;
+    "\n*[_type == \"product\"]\n| order(quantity desc)\n[0...10]\n\n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": TOP_SELLING_PRODUCTS_QUERYResult;
+    "\n*[_type == \"product\" && defined(quantity)]\n| order(quantity desc)\n[0...10]\n\n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": TOP_SELLING_PRODUCTS_AGGREGATED_QUERYResult;
+    "\n  *[\n    _type == \"order\" &&\n    (\n      status == \"pending\" ||\n      status == \"processing\"\n    )\n  ] | order(createdAt asc) {\n    _id,\n    orderId,\n    totalAmount,\n    status,\n    createdAt,\n    customer->{\n      _id,\n      name,\n      email\n    },\n    items[]{\n      title,\n      quantity\n    }\n  }\n": UNFULFILLED_ORDERS_QUERYResult;
+    "\n{\n  \"salesLast7Days\": math::sum(\n    *[\n      _type == \"order\"\n      && status == \"completed\"\n      && createdAt >= dateTime(now()) - 60*60*24*7\n    ].total\n  )\n}\n": SALES_LAST_7_DAYS_QUERYResult;
   }
 }

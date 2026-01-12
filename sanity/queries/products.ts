@@ -10,29 +10,37 @@ export const PRODUCT_PROJECTION = `
 {
   _id,
   title,
-  "slug": slug.current,
+  description,
   price,
   discountPrice,
+  slug,
+  featured,
   inStock,
   quantity,
-  featured,
-  description,
+  createdAt,
 
-  categories[]->{
-    _id,
-    title,
-    "slug": slug.current
-  },
-
-  images[]{
+  "image": image{
     asset->{
       _id,
       url
-    },
-    hotspot
+    }
+  },
+
+  "gallery": gallery[]{
+    asset->{
+      _id,
+      url
+    }
+  },
+
+  "categories": categories[]->{
+    _id,
+    title,
+    slug
   }
 }
 `;
+
 
 /**
  * =========================
@@ -143,7 +151,7 @@ export const LOW_STOCK_PRODUCTS_QUERY = defineQuery(`
 /** Featured products */
 export const FEATURED_PRODUCTS_QUERY = defineQuery(`
   *[_type == "product" && featured == true]
-  | order(_createdAt desc)
+  | order(createdAt desc)
   ${PRODUCT_PROJECTION}
 `);
 
@@ -213,18 +221,15 @@ export const LOW_STOCK_COUNT_QUERY = defineQuery(`
 export const FILTER_PRODUCTS_BY_RELEVANCE_QUERY = defineQuery(`
 *[
   _type == "product"
-  && (
-    title match $search + "*" ||
-    description match $search + "*"
-  )
+  && defined($search)
+  && title match $search + "*"
 ]
-| score(
-    boost(title match $search + "*", 3),
-    boost(description match $search + "*", 1)
-  )
+| score(title match $search)
 | order(_score desc)
+[$offset...$offset + $limit]
 ${PRODUCT_PROJECTION}
 `);
+
 /**
  * =========================
  * FILTER: NAME A–Z
@@ -233,11 +238,17 @@ ${PRODUCT_PROJECTION}
 export const FILTER_PRODUCTS_BY_NAME_QUERY = defineQuery(`
 *[
   _type == "product"
-  && (!defined($search) || title match $search + "*")
+  && ($search == "" || title match $search + "*")
+  && ($category == "" || $category in categories[]->slug.current)
+  && price >= $minPrice
+  && price <= $maxPrice
 ]
 | order(title asc)
+[$offset...$offset + $limit]
 ${PRODUCT_PROJECTION}
 `);
+
+
 /**
  * =========================
  * FILTER: PRICE ASC
@@ -247,10 +258,15 @@ export const FILTER_PRODUCTS_BY_PRICE_ASC_QUERY = defineQuery(`
 *[
   _type == "product"
   && (!defined($search) || title match $search + "*")
+  && (!defined($category) || $category in categories[]->slug.current)
+  && (!defined($minPrice) || price >= $minPrice)
+  && (!defined($maxPrice) || price <= $maxPrice)
 ]
 | order(price asc)
+[$offset...$offset + $limit]
 ${PRODUCT_PROJECTION}
 `);
+
 /**
  * =========================
  * FILTER: PRICE DESC
@@ -260,10 +276,15 @@ export const FILTER_PRODUCTS_BY_PRICE_DESC_QUERY = defineQuery(`
 *[
   _type == "product"
   && (!defined($search) || title match $search + "*")
+  && (!defined($category) || $category in categories[]->slug.current)
+  && (!defined($minPrice) || price >= $minPrice)
+  && (!defined($maxPrice) || price <= $maxPrice)
 ]
 | order(price desc)
+[$offset...$offset + $limit]
 ${PRODUCT_PROJECTION}
 `);
+
 /**
  * =========================
  * MASTER PRODUCT FILTER QUERY
@@ -272,39 +293,25 @@ ${PRODUCT_PROJECTION}
 export const FILTER_PRODUCTS_MASTER_QUERY = defineQuery(`
 *[
   _type == "product"
-
-  // Search
   && (!defined($search) || title match $search + "*")
-
-  // Category
   && (!defined($category) || $category in categories[]->slug.current)
-
-  // Price range
   && (!defined($minPrice) || price >= $minPrice)
   && (!defined($maxPrice) || price <= $maxPrice)
-
-  // Stock
   && (!defined($inStock) || inStock == $inStock)
-
-  // Featured
-  && (!defined($featured) || featured == $featured)
-
-  // Discounted
-  && (!defined($discounted) || defined(discountPrice))
 ]
 | order(
   select(
-    $sort == "relevance" => _score desc,
-    $sort == "priceAsc" => price asc,
-    $sort == "priceDesc" => price desc,
-    $sort == "nameAsc" => title asc,
-    $sort == "nameDesc" => title desc,
-    _createdAt desc
+    $sort == "price_asc" => price,
+    $sort == "price_desc" => price desc,
+    $sort == "newest" => createdAt desc,
+    title asc
   )
 )
 [$offset...$offset + $limit]
 ${PRODUCT_PROJECTION}
 `);
+
+
 /**
  * =========================
  * FILTERED PRODUCT COUNT
