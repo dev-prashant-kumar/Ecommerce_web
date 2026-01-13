@@ -238,13 +238,13 @@ ${PRODUCT_PROJECTION}
 export const FILTER_PRODUCTS_BY_NAME_QUERY = defineQuery(`
 *[
   _type == "product"
-  && ($search == "" || title match $search + "*")
+  && title match $search
   && ($category == "" || $category in categories[]->slug.current)
   && price >= $minPrice
   && price <= $maxPrice
 ]
 | order(title asc)
-[$offset...$offset + $limit]
+[$start...$end]
 ${PRODUCT_PROJECTION}
 `);
 

@@ -925,6 +925,37 @@ export type OUT_OF_STOCK_COUNT_QUERYResult = number;
 // Variable: LOW_STOCK_COUNT_QUERY
 // Query: count(*[_type == "product" && quantity < $threshold])
 export type LOW_STOCK_COUNT_QUERYResult = number;
+// Variable: FILTER_PRODUCTS_BY_NAME_QUERY
+// Query: *[  _type == "product"  && title match $search  && ($category == "" || $category in categories[]->slug.current)  && price >= $minPrice  && price <= $maxPrice]| order(title asc)[$start...$end]{  _id,  title,  description,  price,  discountPrice,  slug,  featured,  inStock,  quantity,  createdAt,  "image": image{    asset->{      _id,      url    }  },  "gallery": gallery[]{    asset->{      _id,      url    }  },  "categories": categories[]->{    _id,    title,    slug  }}
+export type FILTER_PRODUCTS_BY_NAME_QUERYResult = Array<{
+  _id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  discountPrice: number | null;
+  slug: Slug | null;
+  featured: boolean | null;
+  inStock: boolean | null;
+  quantity: number | null;
+  createdAt: string | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: Slug | null;
+  }> | null;
+}>;
 // Variable: FILTERED_PRODUCT_COUNT_QUERY
 // Query: count(  *[    _type == "product"    && (!defined($search) || title match $search + "*")    && (!defined($category) || $category in categories[]->slug.current)    && (!defined($minPrice) || price >= $minPrice)    && (!defined($maxPrice) || price <= $maxPrice)    && (!defined($inStock) || inStock == $inStock)  ])
 export type FILTERED_PRODUCT_COUNT_QUERYResult = number;
@@ -1132,6 +1163,7 @@ declare module "@sanity/client" {
     "\n  count(*[_type == \"product\"])\n": PRODUCT_COUNT_QUERYResult | TOTAL_PRODUCTS_QUERYResult;
     "\n  count(*[_type == \"product\" && inStock == false])\n": OUT_OF_STOCK_COUNT_QUERYResult | OUT_OF_STOCK_PRODUCTS_COUNT_QUERYResult;
     "\n  count(*[_type == \"product\" && quantity < $threshold])\n": LOW_STOCK_COUNT_QUERYResult | LOW_STOCK_PRODUCTS_COUNT_QUERYResult;
+    "\n*[\n  _type == \"product\"\n  && title match $search\n  && ($category == \"\" || $category in categories[]->slug.current)\n  && price >= $minPrice\n  && price <= $maxPrice\n]\n| order(title asc)\n[$start...$end]\n\n{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  slug,\n  featured,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"image\": image{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"gallery\": gallery[]{\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  \"categories\": categories[]->{\n    _id,\n    title,\n    slug\n  }\n}\n\n": FILTER_PRODUCTS_BY_NAME_QUERYResult;
     "\ncount(\n  *[\n    _type == \"product\"\n    && (!defined($search) || title match $search + \"*\")\n    && (!defined($category) || $category in categories[]->slug.current)\n    && (!defined($minPrice) || price >= $minPrice)\n    && (!defined($maxPrice) || price <= $maxPrice)\n    && (!defined($inStock) || inStock == $inStock)\n  ]\n)\n": FILTERED_PRODUCT_COUNT_QUERYResult;
     "\n  count(*[_type == \"product\" && inStock == true])\n": IN_STOCK_PRODUCTS_COUNT_QUERYResult;
     "\n  count(*[_type == \"product\" && featured == true])\n": FEATURED_PRODUCTS_COUNT_QUERYResult;

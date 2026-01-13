@@ -1,4 +1,6 @@
-import FeaturedCarousel from "@/components/FeaturedCarousel";
+import { CategoryTiles } from "@/components/homePage/CategoryTiles";
+import FeaturedCarousel from "@/components/homePage/FeaturedCarousel";
+import { FeaturedCarouselSkeleton } from "@/components/homePage/FeaturedCarouselSkeleton";
 import { sanityFetch } from "@/sanity/lib/live";
 import { All_CATEGORIES_QUERY } from "@/sanity/queries/categories";
 import {
@@ -8,13 +10,8 @@ import {
   FILTER_PRODUCTS_BY_PRICE_DESC_QUERY,
   FILTER_PRODUCTS_BY_NAME_QUERY,
 } from "@/sanity/queries/products";
-import { ca } from "date-fns/locale";
 import { Suspense } from "react";
 
-/**
- * ✅ IMPORTANT:
- * searchParams is NOT a Promise in Next.js App Router
- */
 interface PageProps {
   searchParams: {
     q?: string;
@@ -31,28 +28,30 @@ interface PageProps {
 
 export default async function Home({ searchParams }: PageProps) {
   // -----------------------------
-  // SEARCH & FILTER NORMALIZATION
+  // NORMALIZED PARAMS
   // -----------------------------
-  const searchQuery = searchParams.q?.trim() || "";
-  const sort = searchParams.sort ?? "name";
-  const page = Number(searchParams.page ?? "1");
+const searchQuery = searchParams.q?.trim() || "";
+const sort = searchParams.sort ?? "name";
+const categorySlug = searchParams.category ?? "";
+
+const page = Number(searchParams.page ?? "1");
+const limit = 12;
+
+const params = {
+  search: searchQuery ? `${searchQuery}*` : "*",
+  category: categorySlug,
+  minPrice: searchParams.minPrice
+    ? Number(searchParams.minPrice)
+    : 0,
+  maxPrice: searchParams.maxPrice
+    ? Number(searchParams.maxPrice)
+    : 999999,
+
+  start: (page - 1) * limit,
+  end: page * limit,
+};
 
 
-  const params = {
-    search: searchQuery,
-    category: searchParams.category || "",
-    minPrice: searchParams.minPrice
-      ? Number(searchParams.minPrice)
-      : 0,
-    maxPrice: searchParams.maxPrice
-      ? Number(searchParams.maxPrice)
-      : 999999,
-    inStock: searchParams.inStock === "true",
-    featured: searchParams.featured === "true",
-    discounted: searchParams.discounted === "true",
-    offset: (page - 1) * 12,
-    limit: 12,
-  };
 
   // -----------------------------
   // QUERY SELECTOR
@@ -73,7 +72,7 @@ export default async function Home({ searchParams }: PageProps) {
   };
 
   // -----------------------------
-  // DATA FETCHING
+  // FETCH DATA
   // -----------------------------
   const [
     { data: categories },
@@ -97,26 +96,33 @@ export default async function Home({ searchParams }: PageProps) {
   // -----------------------------
   return (
     <div className="space-y-12">
-      {/* Featured products carousel */}
-      <Suspense fallback={<div>Loading featured products...</div>}>
+      {/* Featured carousel */}
+      <Suspense fallback={<FeaturedCarouselSkeleton />}>
         <FeaturedCarousel products={featuredProducts} />
       </Suspense>
 
-      {/* banner */}
+      {/* Header + Categories */}
       <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-7xl px-8 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            Shop {categoriesSlug ? categoriesSlug : "All Products"}
+            Shop {categorySlug || "All Products"}
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Premium furnitures for your home
+            Premium furniture for your home
           </p>
         </div>
-        {/* category tiles */}
+
+        {/* Category tiles */}
         <div className="mt-6">
-          <CategoryTiles categories={categories} activeCategory={categoriesSlug || undefined} />
+          <CategoryTiles
+            categories={categories}
+            activeCategory={categorySlug || undefined}
+          />
         </div>
       </div>
-      </div>
+
+      {/* Products grid comes next */}
+      {/* <ProductGrid products={products} /> */}
+    </div>
   );
 }
