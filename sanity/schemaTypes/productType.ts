@@ -6,119 +6,193 @@ export const productType = defineType({
   title: "Product",
   type: "document",
   icon: PackageIcon,
-  groups:[
-    {name:"details",title:"Details",default:true},
-    {name:"media",title:"Media"},
-    {name:"inventory",title:"Inventory"},
+
+  groups: [
+    { name: "details", title: "Details", default: true },
+    { name: "media", title: "Media" },
+    { name: "variants", title: "Variants" },
+    { name: "inventory", title: "Inventory" },
   ],
+
   fields: [
-    // Product Name
+    /* ---------------- BASIC INFO ---------------- */
     defineField({
       name: "title",
       title: "Product Name",
       type: "string",
-      validation: (rule) =>
-        rule.required().error("Product name is required"),
+      group: "details",
+      validation: (rule) => rule.required(),
     }),
 
-    // Slug
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: {
-        source: "title",
-        maxLength: 96,
-      },
-      validation: (rule) =>
-        rule.required().error("Slug is required"),
+      group: "details",
+      options: { source: "title", maxLength: 96 },
+      validation: (rule) => rule.required(),
     }),
 
-    // Price
-    defineField({
-      name: "price",
-      title: "Price",
-      type: "number",
-      validation: (rule) =>
-        rule.required().min(0).error("Price must be a positive number"),
-    }),
-
-    // Discount Price (Optional)
-    defineField({
-      name: "discountPrice",
-      title: "Discount Price",
-      type: "number",
-      validation: (rule) =>
-        rule.min(0).warning("Discount price should be positive"),
-    }),
-
-    // Categories (Reference)
-    defineField({
-      name: "categories",
-      title: "Categories",
-      type: "array",
-      of: [
-        {
-          type: "reference",
-          to: [{ type: "category" }],
-        },
-      ],
-      validation: (rule) =>
-        rule.required().min(1).error("At least one category is required"),
-    }),
-
-    // Main Image
-    defineField({
-      name: "image",
-      title: "Main Image",
-      type: "image",
-      options: { hotspot: true },
-      validation: (rule) =>
-        rule.required().error("Product image is required"),
-    }),
-
-    // Gallery Images
-    defineField({
-      name: "gallery",
-      title: "Gallery Images",
-      type: "array",
-      of: [{ type: "image", options: { hotspot: true } }],
-    }),
-
-    // Description
     defineField({
       name: "description",
       title: "Description",
       type: "text",
-      validation: (rule) =>
-        rule.required().min(20).error("Description is required"),
+      group: "details",
+      validation: (rule) => rule.required().min(20),
     }),
 
-    // Stock
+    defineField({
+      name: "categories",
+      title: "Categories",
+      type: "array",
+      group: "details",
+      of: [{ type: "reference", to: [{ type: "category" }] }],
+      validation: (rule) => rule.required().min(1),
+    }),
+
+    /* ---------------- PRICING ---------------- */
+    defineField({
+      name: "price",
+      title: "Base Price",
+      type: "number",
+      group: "details",
+      validation: (rule) => rule.required().min(0),
+    }),
+
+    defineField({
+      name: "discountPrice",
+      title: "Discount Price",
+      type: "number",
+      group: "details",
+      validation: (rule) => rule.min(0),
+    }),
+
+    /* ---------------- COLORS ---------------- */
+    defineField({
+      name: "colors",
+      title: "Available Colors",
+      type: "array",
+      group: "variants",
+      of: [
+        {
+          type: "object",
+          fields: [
+            {
+              name: "name",
+              title: "Color Name",
+              type: "string",
+            },
+            {
+              name: "hex",
+              title: "Hex Code",
+              type: "string",
+              description: "Example: #000000",
+            },
+          ],
+        },
+      ],
+    }),
+
+    /* ---------------- SIZES ---------------- */
+    defineField({
+      name: "sizes",
+      title: "Available Sizes",
+      type: "array",
+      group: "variants",
+      of: [{ type: "string" }],
+      description: "Examples: S, M, L, XL, 42, One Size",
+    }),
+
+    /* ---------------- VARIANTS (OPTIONAL BUT POWERFUL) ---------------- */
+    defineField({
+      name: "variants",
+      title: "Product Variants",
+      type: "array",
+      group: "variants",
+      of: [
+        {
+          type: "object",
+          fields: [
+            {
+              name: "sku",
+              title: "SKU",
+              type: "string",
+            },
+            {
+              name: "color",
+              title: "Color",
+              type: "string",
+            },
+            {
+              name: "size",
+              title: "Size",
+              type: "string",
+            },
+            {
+              name: "price",
+              title: "Variant Price",
+              type: "number",
+            },
+            {
+              name: "inStock",
+              title: "In Stock",
+              type: "boolean",
+              initialValue: true,
+            },
+            {
+              name: "quantity",
+              title: "Stock Quantity",
+              type: "number",
+              validation: (rule) => rule.min(0),
+            },
+          ],
+        },
+      ],
+    }),
+
+    /* ---------------- MEDIA ---------------- */
+    defineField({
+      name: "image",
+      title: "Main Image",
+      type: "image",
+      group: "media",
+      options: { hotspot: true },
+      validation: (rule) => rule.required(),
+    }),
+
+    defineField({
+      name: "gallery",
+      title: "Gallery Images",
+      type: "array",
+      group: "media",
+      of: [{ type: "image", options: { hotspot: true } }],
+    }),
+
+    /* ---------------- INVENTORY ---------------- */
     defineField({
       name: "inStock",
       title: "In Stock",
       type: "boolean",
+      group: "inventory",
       initialValue: true,
     }),
 
     defineField({
       name: "quantity",
-      title: "Stock Quantity",
+      title: "Total Stock Quantity",
       type: "number",
-      validation: (rule) =>
-        rule.min(0).error("Quantity cannot be negative"),
+      group: "inventory",
+      validation: (rule) => rule.min(0),
     }),
 
-    // Featured Product
     defineField({
       name: "featured",
       title: "Featured Product",
       type: "boolean",
+      group: "details",
       initialValue: false,
     }),
 
-    // Created At
     defineField({
       name: "createdAt",
       title: "Created At",

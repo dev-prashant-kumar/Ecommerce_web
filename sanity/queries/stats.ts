@@ -147,12 +147,12 @@ export const MONTH_REVENUE_QUERY = defineQuery(`
 
 /** Average order value */
 export const AVERAGE_ORDER_VALUE_QUERY = defineQuery(`
-  avg(*[_type == "order" && payment.status == "paid"].totalAmount)
+  math::avg(*[_type == "order" && status == "paid"].totalAmount)
 `);
 
 /** Highest order value */
 export const MAX_ORDER_VALUE_QUERY = defineQuery(`
-  max(*[_type == "order"].totalAmount)
+  math::max(*[_type == "order" && status == "paid"].totalAmount)
 `);
 
 /**
@@ -220,20 +220,21 @@ export const ORDER_STATUS_DISTRIBUTION_QUERY = defineQuery(`
  */
 
 export const TOP_SELLING_PRODUCTS_QUERY = defineQuery(`
-*[_type == "product"]
-| order(quantity desc)
-[0...10]
-${PRODUCT_PROJECTION}
+  *[_type == "product"] {
+    ${PRODUCT_PROJECTION},
+    "salesCount": count(*[_type == "order" && references(^._id)])
+  } | order(salesCount desc)[0...5]
 `);
 
 /**
  * 🔥 Aggregated top-selling products (recommended version)
  */
 export const TOP_SELLING_PRODUCTS_AGGREGATED_QUERY = defineQuery(`
-*[_type == "product" && defined(quantity)]
-| order(quantity desc)
-[0...10]
-${PRODUCT_PROJECTION}
+  *[_type == "product"] {
+    _id,
+    title,
+    "totalRevenue": math::sum(*[_type == "order" && references(^._id)].items[product._ref == ^.^._id].price)
+  } | order(totalRevenue desc)[0...5]
 `);
 
 

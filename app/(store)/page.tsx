@@ -1,79 +1,67 @@
 import { CategoryTiles } from "@/components/homePage/CategoryTiles";
 import FeaturedCarousel from "@/components/homePage/FeaturedCarousel";
 import { FeaturedCarouselSkeleton } from "@/components/homePage/FeaturedCarouselSkeleton";
+import { ProductGrid } from "@/components/homePage/ProductGrid";
+import { ProductSection } from "@/components/homePage/ProductSection";
+
 import { sanityFetch } from "@/sanity/lib/live";
 import { All_CATEGORIES_QUERY } from "@/sanity/queries/categories";
 import {
   FEATURED_PRODUCTS_QUERY,
-  FILTER_PRODUCTS_BY_RELEVANCE_QUERY,
-  FILTER_PRODUCTS_BY_PRICE_ASC_QUERY,
-  FILTER_PRODUCTS_BY_PRICE_DESC_QUERY,
-  FILTER_PRODUCTS_BY_NAME_QUERY,
+  FILTER_PRODUCTS_MASTER_QUERY,
 } from "@/sanity/queries/products";
+
 import { Suspense } from "react";
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise< {
     q?: string;
     category?: string;
+    color?: string;
+    size?: string;
     minPrice?: string;
     maxPrice?: string;
     inStock?: string;
-    featured?: string;
-    discounted?: string;
     sort?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function Home({ searchParams }: PageProps) {
-  // -----------------------------
-  // NORMALIZED PARAMS
-  // -----------------------------
-const searchQuery = searchParams.q?.trim() || "";
-const sort = searchParams.sort ?? "name";
-const categorySlug = searchParams.category ?? "";
 
-const page = Number(searchParams.page ?? "1");
-const limit = 12;
+// 1. Rename the resolved promise to 'resolvedSearchParams'
+  const resolvedSearchParams = await searchParams;
 
-const params = {
-  search: searchQuery ? `${searchQuery}*` : "*",
-  category: categorySlug,
-  minPrice: searchParams.minPrice
-    ? Number(searchParams.minPrice)
-    : 0,
-  maxPrice: searchParams.maxPrice
-    ? Number(searchParams.maxPrice)
-    : 999999,
+  // 2. Extract values from 'resolvedSearchParams'
+  const searchQuery = resolvedSearchParams.q?.trim() || "";
+  const categorySlug = resolvedSearchParams.category ?? "";
+  const sort = resolvedSearchParams.sort ?? "newest";
+  const page = Number(resolvedSearchParams.page ?? "1");
+  const limit = 12;
 
-  start: (page - 1) * limit,
-  end: page * limit,
-};
-
-
-
-  // -----------------------------
-  // QUERY SELECTOR
-  // -----------------------------
-  const getQuery = () => {
-    if (searchQuery && sort === "relevance") {
-      return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
-    }
-
-    switch (sort) {
-      case "price_asc":
-        return FILTER_PRODUCTS_BY_PRICE_ASC_QUERY;
-      case "price_desc":
-        return FILTER_PRODUCTS_BY_PRICE_DESC_QUERY;
-      default:
-        return FILTER_PRODUCTS_BY_NAME_QUERY;
-    }
+  // 3. Create the object for Sanity and name it 'params' 
+  // (This makes it available for the fetch call below)
+  const params = {
+    search: searchQuery ? `${searchQuery}*` : null,
+    category: categorySlug || null,
+    color: resolvedSearchParams.color ?? null,
+    size: resolvedSearchParams.size ?? null,
+    minPrice: resolvedSearchParams.minPrice ? Number(resolvedSearchParams.minPrice) : null,
+    maxPrice: resolvedSearchParams.maxPrice ? Number(resolvedSearchParams.maxPrice) : null,
+    inStock:
+      resolvedSearchParams.inStock === "true"
+        ? true
+        : resolvedSearchParams.inStock === "false"
+        ? false
+        : null,
+    sort,
+    start: (page - 1) * limit,
+    end: page * limit,
   };
 
-  // -----------------------------
-  // FETCH DATA
-  // -----------------------------
+  /* =============================
+      FETCH DATA
+  ============================== */
   const [
     { data: categories },
     { data: featuredProducts },
@@ -86,14 +74,15 @@ const params = {
       query: FEATURED_PRODUCTS_QUERY,
     }),
     sanityFetch({
-      query: getQuery(),
-      params,
+      query: FILTER_PRODUCTS_MASTER_QUERY,
+      params, // <--- This now points to the 'const params' defined above
     }),
   ]);
 
-  // -----------------------------
-  // RENDER
-  // -----------------------------
+  /* =============================
+     RENDER
+  ============================== */
+
   return (
     <div className="space-y-12">
       {/* Featured carousel */}
@@ -108,7 +97,7 @@ const params = {
             Shop {categorySlug || "All Products"}
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Premium furniture for your home
+            Categories of our products
           </p>
         </div>
 
@@ -121,8 +110,9 @@ const params = {
         </div>
       </div>
 
-      {/* Products grid comes next */}
-      {/* <ProductGrid products={products} /> */}
+      {/* Products grid */}
+      <ProductSection products={products} categories={categories} searchQuery={searchQuery} />
+      
     </div>
   );
 }
