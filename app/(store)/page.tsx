@@ -1,6 +1,6 @@
 import { CategoryTiles } from "@/components/homePage/CategoryTiles";
-import FeaturedCarousel from "@/components/homePage/FeaturedCarousel";
-import { FeaturedCarouselSkeleton } from "@/components/homePage/FeaturedCarouselSkeleton";
+import FeaturedCarousel from "@/components/layout/FeaturedCarousel";
+import { FeaturedCarouselSkeleton } from "@/components/layout/FeaturedCarouselSkeleton";
 import { ProductGrid } from "@/components/homePage/ProductGrid";
 import { ProductSection } from "@/components/homePage/ProductSection";
 

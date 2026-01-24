@@ -61,7 +61,7 @@ export function AddToCartButton({
     return (
       <Button onClick={handleAdd} className={cn("h-11 w-full", className)}>
         <ShoppingBag className="mr-2 h-4 w-4" />
-        Add to Basket
+        Add to Cart
       </Button>
     );
   }

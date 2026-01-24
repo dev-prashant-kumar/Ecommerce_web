@@ -485,39 +485,21 @@ export type FILTER_PRODUCTS_MASTER_QUERYResult = Array<{
   }> | null;
 }>;
 // Variable: PRODUCT_BY_SLUG_QUERY
-// Query: *[_type == "product" && slug.current == $slug][0] {   _id,  title,  description,  price,  discountPrice,  featured,  inStock,  quantity,  _createdAt,  createdAt,  slug {    current  },  image {    asset->{      _id,      url    }  },  gallery[] {    asset->{      _id,      url    }  },  categories[]->{    _id,    title,    slug {      current    }  },  colors[]{    name,    hex  },  sizes,  variants[]{    sku,    color,    size,    price,    inStock,    quantity  } }
+// Query: *[_type == "product" && slug.current == $slug][0]{  _id,  title,  description,  price,  discountPrice,  inStock,  quantity,  createdAt,  "images": gallery[].asset->url,  categories[]->{    _id,    title,    "slug": slug.current  },  colors[]{    name,    hex  },  sizes,  variants[]{    sku,    color,    size,    price,    inStock,    quantity  }}
 export type PRODUCT_BY_SLUG_QUERYResult = {
   _id: string;
   title: string | null;
   description: string | null;
   price: number | null;
   discountPrice: number | null;
-  featured: boolean | null;
   inStock: boolean | null;
   quantity: number | null;
-  _createdAt: string;
   createdAt: string | null;
-  slug: {
-    current: string | null;
-  } | null;
-  image: {
-    asset: {
-      _id: string;
-      url: string | null;
-    } | null;
-  } | null;
-  gallery: Array<{
-    asset: {
-      _id: string;
-      url: string | null;
-    } | null;
-  }> | null;
+  images: Array<string | null> | null;
   categories: Array<{
     _id: string;
     title: string | null;
-    slug: {
-      current: string | null;
-    } | null;
+    slug: string | null;
   }> | null;
   colors: Array<{
     name: string | null;
@@ -633,6 +615,159 @@ export type FILTER_PRODUCTS_BY_NAME_QUERYResult = Array<{
     inStock: boolean | null;
     quantity: number | null;
   }> | null;
+}>;
+// Variable: FILTER_PRODUCTS_BY_PRICE_ASC_QUERY
+// Query: *[_type == "product"] | order(price asc) {      _id,  title,  description,  price,  discountPrice,  featured,  inStock,  quantity,  _createdAt,  createdAt,  slug {    current  },  image {    asset->{      _id,      url    }  },  gallery[] {    asset->{      _id,      url    }  },  categories[]->{    _id,    title,    slug {      current    }  },  colors[]{    name,    hex  },  sizes,  variants[]{    sku,    color,    size,    price,    inStock,    quantity  }  }
+export type FILTER_PRODUCTS_BY_PRICE_ASC_QUERYResult = Array<{
+  _id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  discountPrice: number | null;
+  featured: boolean | null;
+  inStock: boolean | null;
+  quantity: number | null;
+  _createdAt: string;
+  createdAt: string | null;
+  slug: {
+    current: string | null;
+  } | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: {
+      current: string | null;
+    } | null;
+  }> | null;
+  colors: Array<{
+    name: string | null;
+    hex: string | null;
+  }> | null;
+  sizes: Array<string> | null;
+  variants: Array<{
+    sku: string | null;
+    color: string | null;
+    size: string | null;
+    price: number | null;
+    inStock: boolean | null;
+    quantity: number | null;
+  }> | null;
+}>;
+// Variable: FILTER_PRODUCTS_BY_PRICE_DESC_QUERY
+// Query: *[_type == "product"] | order(price desc) [$start...$end] {      _id,  title,  description,  price,  discountPrice,  featured,  inStock,  quantity,  _createdAt,  createdAt,  slug {    current  },  image {    asset->{      _id,      url    }  },  gallery[] {    asset->{      _id,      url    }  },  categories[]->{    _id,    title,    slug {      current    }  },  colors[]{    name,    hex  },  sizes,  variants[]{    sku,    color,    size,    price,    inStock,    quantity  }  }
+export type FILTER_PRODUCTS_BY_PRICE_DESC_QUERYResult = Array<{
+  _id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  discountPrice: number | null;
+  featured: boolean | null;
+  inStock: boolean | null;
+  quantity: number | null;
+  _createdAt: string;
+  createdAt: string | null;
+  slug: {
+    current: string | null;
+  } | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: {
+      current: string | null;
+    } | null;
+  }> | null;
+  colors: Array<{
+    name: string | null;
+    hex: string | null;
+  }> | null;
+  sizes: Array<string> | null;
+  variants: Array<{
+    sku: string | null;
+    color: string | null;
+    size: string | null;
+    price: number | null;
+    inStock: boolean | null;
+    quantity: number | null;
+  }> | null;
+}>;
+// Variable: FILTER_PRODUCTS_BY_RELEVANCE_QUERY
+// Query: *[_type == "product" && (title match $search + "*" || description match $search + "*")] | order(  select(    title match $search + "*" => 2,    description match $search + "*" => 1,    0  ) desc,  title asc) [$start...$end] {    _id,  title,  description,  price,  discountPrice,  featured,  inStock,  quantity,  _createdAt,  createdAt,  slug {    current  },  image {    asset->{      _id,      url    }  },  gallery[] {    asset->{      _id,      url    }  },  categories[]->{    _id,    title,    slug {      current    }  },  colors[]{    name,    hex  },  sizes,  variants[]{    sku,    color,    size,    price,    inStock,    quantity  }}
+export type FILTER_PRODUCTS_BY_RELEVANCE_QUERYResult = Array<{
+  _id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  discountPrice: number | null;
+  featured: boolean | null;
+  inStock: boolean | null;
+  quantity: number | null;
+  _createdAt: string;
+  createdAt: string | null;
+  slug: {
+    current: string | null;
+  } | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  gallery: Array<{
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  }> | null;
+  categories: Array<{
+    _id: string;
+    title: string | null;
+    slug: {
+      current: string | null;
+    } | null;
+  }> | null;
+  colors: Array<{
+    name: string | null;
+    hex: string | null;
+  }> | null;
+  sizes: Array<string> | null;
+  variants: Array<{
+    sku: string | null;
+    color: string | null;
+    size: string | null;
+    price: number | null;
+    inStock: boolean | null;
+    quantity: number | null;
+  }> | null;
+}>;
+// Variable: PRODUCTS_BY_IDS_QUERY
+// Query: *[_type == "product" && _id in $ids] {    _id,    quantity  }
+export type PRODUCTS_BY_IDS_QUERYResult = Array<{
+  _id: string;
+  quantity: number | null;
 }>;
 
 // Source: ./sanity/queries/stats.ts
@@ -821,10 +956,14 @@ declare module "@sanity/client" {
     "\n  *[_type == \"order\" && clerkUserId == $clerkUserId]\n  | order(createdAt desc) {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt\n  }\n": ORDERS_BY_CLERK_USER_QUERYResult;
     "\n  *[_type == \"order\" && customer._ref == $customerId]\n  | order(createdAt desc) {\n    _id,\n    orderId,\n    status,\n    totalAmount,\n    createdAt\n  }\n": ORDERS_BY_CUSTOMER_ID_QUERYResult;
     "\n*[\n  _type == \"product\"\n  && (!defined($search) || title match $search + \"*\")\n  && (!defined($category) || $category in categories[]->slug.current)\n  && (!defined($minPrice) || price >= $minPrice)\n  && (!defined($maxPrice) || price <= $maxPrice)\n  && (!defined($inStock) || inStock == $inStock)\n] | order(\n  select($sort == \"price_asc\" => price) asc,\n  select($sort == \"price_desc\" => price) desc,\n  select($sort == \"newest\" => _createdAt) desc,\n  title asc\n)[$start...$end] {\n  \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n}\n": FILTER_PRODUCTS_MASTER_QUERYResult;
-    "\n  *[_type == \"product\" && slug.current == $slug][0] { \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n }\n": PRODUCT_BY_SLUG_QUERYResult;
+    "\n*[_type == \"product\" && slug.current == $slug][0]{\n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  inStock,\n  quantity,\n  createdAt,\n\n  \"images\": gallery[].asset->url,\n\n  categories[]->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n}\n": PRODUCT_BY_SLUG_QUERYResult;
     "\n  *[_type == \"product\" && featured == true] | order(_createdAt desc) { \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n }\n": FEATURED_PRODUCTS_QUERYResult;
     "\ncount(\n  *[\n    _type == \"product\"\n    && (!defined($search) || title match $search + \"*\")\n    && (!defined($category) || $category in categories[]->slug.current)\n    && (!defined($minPrice) || price >= $minPrice)\n    && (!defined($maxPrice) || price <= $maxPrice)\n    && (!defined($inStock) || inStock == $inStock)\n  ]\n)\n": FILTERED_PRODUCT_COUNT_QUERYResult;
     "\n*[\n  _type == \"product\"\n  // Only filter by name if $name is actually provided\n  && (!defined($name) || title match $name + \"*\")\n] | order(title asc) {\n  \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n}\n": FILTER_PRODUCTS_BY_NAME_QUERYResult;
+    "\n  *[_type == \"product\"] | order(price asc) {\n    \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n  }\n": FILTER_PRODUCTS_BY_PRICE_ASC_QUERYResult;
+    "\n  *[_type == \"product\"] | order(price desc) [$start...$end] {\n    \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n  }\n": FILTER_PRODUCTS_BY_PRICE_DESC_QUERYResult;
+    "\n*[_type == \"product\" && (title match $search + \"*\" || description match $search + \"*\")] \n| order(\n  select(\n    title match $search + \"*\" => 2,\n    description match $search + \"*\" => 1,\n    0\n  ) desc,\n  title asc\n) [$start...$end] {\n  \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n}\n": FILTER_PRODUCTS_BY_RELEVANCE_QUERYResult;
+    "\n  *[_type == \"product\" && _id in $ids] {\n    _id,\n    quantity\n  }\n": PRODUCTS_BY_IDS_QUERYResult;
     "\n  count(*[_type == \"product\"])\n": TOTAL_PRODUCTS_QUERYResult;
     "\n  count(*[_type == \"product\" && inStock == true])\n": IN_STOCK_PRODUCTS_COUNT_QUERYResult;
     "\n  count(*[_type == \"product\" && inStock == false])\n": OUT_OF_STOCK_PRODUCTS_COUNT_QUERYResult;

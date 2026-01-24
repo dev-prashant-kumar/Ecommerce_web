@@ -154,8 +154,42 @@ export const FILTER_PRODUCTS_MASTER_QUERY = defineQuery(`
  */
 
 export const PRODUCT_BY_SLUG_QUERY = defineQuery(`
-  *[_type == "product" && slug.current == $slug][0] { ${PRODUCT_PROJECTION} }
+*[_type == "product" && slug.current == $slug][0]{
+  _id,
+  title,
+  description,
+  price,
+  discountPrice,
+  inStock,
+  quantity,
+  createdAt,
+
+  "images": gallery[].asset->url,
+
+  categories[]->{
+    _id,
+    title,
+    "slug": slug.current
+  },
+
+  colors[]{
+    name,
+    hex
+  },
+
+  sizes,
+
+  variants[]{
+    sku,
+    color,
+    size,
+    price,
+    inStock,
+    quantity
+  }
+}
 `);
+
 
 export const FEATURED_PRODUCTS_QUERY = defineQuery(`
   *[_type == "product" && featured == true] | order(_createdAt desc) { ${PRODUCT_PROJECTION} }
@@ -182,4 +216,36 @@ export const FILTER_PRODUCTS_BY_NAME_QUERY = defineQuery(`
 ] | order(title asc) {
   ${PRODUCT_PROJECTION}
 }
+`);
+export const FILTER_PRODUCTS_BY_PRICE_ASC_QUERY = defineQuery(`
+  *[_type == "product"] | order(price asc) {
+    ${PRODUCT_PROJECTION}
+  }
+`);
+
+export const FILTER_PRODUCTS_BY_PRICE_DESC_QUERY = defineQuery(`
+  *[_type == "product"] | order(price desc) [$start...$end] {
+    ${PRODUCT_PROJECTION}
+  }
+`);
+
+export const FILTER_PRODUCTS_BY_RELEVANCE_QUERY = defineQuery(`
+*[_type == "product" && (title match $search + "*" || description match $search + "*")] 
+| order(
+  select(
+    title match $search + "*" => 2,
+    description match $search + "*" => 1,
+    0
+  ) desc,
+  title asc
+) [$start...$end] {
+  ${PRODUCT_PROJECTION}
+}
+`);
+
+export const PRODUCTS_BY_IDS_QUERY = defineQuery(`
+  *[_type == "product" && _id in $ids] {
+    _id,
+    quantity
+  }
 `);
