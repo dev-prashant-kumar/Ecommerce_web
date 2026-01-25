@@ -764,10 +764,13 @@ export type FILTER_PRODUCTS_BY_RELEVANCE_QUERYResult = Array<{
   }> | null;
 }>;
 // Variable: PRODUCTS_BY_IDS_QUERY
-// Query: *[_type == "product" && _id in $ids] {    _id,    quantity  }
+// Query: *[_type == "product" && _id in $ids] {    _id,    title,    price,    quantity,    "images": images[].asset->url  }
 export type PRODUCTS_BY_IDS_QUERYResult = Array<{
   _id: string;
+  title: string | null;
+  price: number | null;
   quantity: number | null;
+  images: null;
 }>;
 
 // Source: ./sanity/queries/stats.ts
@@ -963,7 +966,7 @@ declare module "@sanity/client" {
     "\n  *[_type == \"product\"] | order(price asc) {\n    \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n  }\n": FILTER_PRODUCTS_BY_PRICE_ASC_QUERYResult;
     "\n  *[_type == \"product\"] | order(price desc) [$start...$end] {\n    \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n  }\n": FILTER_PRODUCTS_BY_PRICE_DESC_QUERYResult;
     "\n*[_type == \"product\" && (title match $search + \"*\" || description match $search + \"*\")] \n| order(\n  select(\n    title match $search + \"*\" => 2,\n    description match $search + \"*\" => 1,\n    0\n  ) desc,\n  title asc\n) [$start...$end] {\n  \n  _id,\n  title,\n  description,\n  price,\n  discountPrice,\n  featured,\n  inStock,\n  quantity,\n  _createdAt,\n  createdAt,\n\n  slug {\n    current\n  },\n\n  image {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  gallery[] {\n    asset->{\n      _id,\n      url\n    }\n  },\n\n  categories[]->{\n    _id,\n    title,\n    slug {\n      current\n    }\n  },\n\n  colors[]{\n    name,\n    hex\n  },\n\n  sizes,\n\n  variants[]{\n    sku,\n    color,\n    size,\n    price,\n    inStock,\n    quantity\n  }\n\n}\n": FILTER_PRODUCTS_BY_RELEVANCE_QUERYResult;
-    "\n  *[_type == \"product\" && _id in $ids] {\n    _id,\n    quantity\n  }\n": PRODUCTS_BY_IDS_QUERYResult;
+    "\n  *[_type == \"product\" && _id in $ids] {\n    _id,\n    title,\n    price,\n    quantity,\n    \"images\": images[].asset->url\n  }\n": PRODUCTS_BY_IDS_QUERYResult;
     "\n  count(*[_type == \"product\"])\n": TOTAL_PRODUCTS_QUERYResult;
     "\n  count(*[_type == \"product\" && inStock == true])\n": IN_STOCK_PRODUCTS_COUNT_QUERYResult;
     "\n  count(*[_type == \"product\" && inStock == false])\n": OUT_OF_STOCK_PRODUCTS_COUNT_QUERYResult;

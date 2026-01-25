@@ -34,7 +34,7 @@ export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
 
       {/* Helper Text */}
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Shipping and taxes calculated at checkout
+        Delivery and taxes calculated at checkout
       </p>
 
       {/* Checkout Button */}

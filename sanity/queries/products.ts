@@ -246,6 +246,9 @@ export const FILTER_PRODUCTS_BY_RELEVANCE_QUERY = defineQuery(`
 export const PRODUCTS_BY_IDS_QUERY = defineQuery(`
   *[_type == "product" && _id in $ids] {
     _id,
-    quantity
+    title,
+    price,
+    quantity,
+    "images": images[].asset->url
   }
 `);

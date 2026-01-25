@@ -4,8 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { client } from "@/sanity/lib/client";
 import { PRODUCTS_BY_IDS_QUERY } from "@/sanity/queries/products";
 import type { CartItem } from "@/lib/store/cart_store";
-import { PRODUCTS_BY_IDS_QUERYResult } from "@/sanity.types";
-import {useQuery} from '@sanity/sdk-react';
+import type { PRODUCTS_BY_IDS_QUERYResult } from "@/sanity.types";
 
 export interface StockInfo {
   productId: string;
@@ -28,18 +27,13 @@ export function useCartStock(items: CartItem[]): UseCartStockReturn {
   const [stockMap, setStockMap] = useState<StockMap>(new Map());
   const [isLoading, setIsLoading] = useState(false);
 
-  const {data : products} = useQuery({
-    queryKey:["products",productIds],
-    queryfn: () => client.fetch(PRODUCTS_BY_IDS_QUERY,{ids:productIds})
-  })
-
   const productIds = useMemo(
     () => Array.from(new Set(items.map((item) => item.productId))),
     [items]
   );
 
   const fetchStock = useCallback(async () => {
-    if (items.length === 0) {
+    if (productIds.length === 0) {
       setStockMap(new Map());
       return;
     }
@@ -47,15 +41,14 @@ export function useCartStock(items: CartItem[]): UseCartStockReturn {
     setIsLoading(true);
 
     try {
-      const products = await client.fetch<PRODUCTS_BY_IDS_QUERYResult>(
-        PRODUCTS_BY_IDS_QUERY,
-        { ids: productIds }
-      );
+      const products =
+        (await client.fetch<PRODUCTS_BY_IDS_QUERYResult>(
+          PRODUCTS_BY_IDS_QUERY,
+          { ids: productIds }
+        )) ?? [];
 
-      const safeProducts = products ?? [];
-
-      const productStockMap = new Map<string, number>(
-        safeProducts.map((p) => [p._id, p.quantity ?? 0])
+      const productStockMap = new Map(
+        products.map((p) => [p._id, p.quantity ?? 0])
       );
 
       const newStockMap: StockMap = new Map();
@@ -73,8 +66,8 @@ export function useCartStock(items: CartItem[]): UseCartStockReturn {
       }
 
       setStockMap(newStockMap);
-    } catch (error) {
-      console.error("Failed to fetch stock:", error);
+    } catch (err) {
+      console.error("Failed to fetch stock:", err);
     } finally {
       setIsLoading(false);
     }
